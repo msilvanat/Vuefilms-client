@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Api Films</title>
+
+
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+    integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css">
+
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Development version -->
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+
+<body>
+  <header>
+    <p>¡Welcome to Movies App!-------------////// Number of
+      visitors: <span id="cuentavisitas"></span></p>
+  </header>
+
+  <div id="app">
+    <div class="container">
+      <h1>Movies App</h1>
+      <br>
+      <div class="row">
+        <div class="col-8">
+          <div class="films">
+            <div class="film" v-for="film in films" :key="film.id">
+              <h3>{{ film.title }}</h3>
+              <p>{{ film.description }}</p>
+              <p>{{ film.director}}</p>
+
+              <button class="btn btn-block btn-outline-danger" v-on:click="onClickEditImg(film.image)">
+                <i class="fas fa-edit"></i> Edit image </button>
+
+              <br>
+
+              <img id="img" v-bind:src="film.image" alt="Girl in a jacket" width="250" height="auto">
+
+              <br>
+
+              <p class="score">
+                <i class="fas fa-star yellow" v-for="point in film.score"></i>
+                <i class="fas fa-star" v-for="point in 5-film.score"></i>
+              </p>
+              <button class="btn btn-block btn-danger" v-on:click="onClickDelete(film.id)">
+                <i class="fas fa-trash"></i>
+                Delete film</button>
+
+              <br>
+
+              <button class="btn btn-block btn-danger" v-on:click="onClickEDit(film)">
+                <i class="fas fa-edit"></i>
+                Edit film</button>
+
+            </div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="form-group">
+            <label>Title</label>
+            <input type="text" class="form-control" v-model="title">
+          </div>
+
+          <div class="form-group">
+            <label>Description</label>
+            <textarea class="form-control" v-model="description"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Director</label>
+            <input type="text" class="form-control" v-model="director">
+          </div>
+
+          <div class="form-group">
+            <label>Score</label>
+            <select class="form-control" v-model="score">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+            </select>
+          </div>
+
+
+          <div v-if="isEdit===false" class="form-group">
+            <label>Image</label>
+            <input type="file" class="form-control-file" @change="onChangeImage($event)" id="formFile">
+          </div>
+
+          <br>
+
+          <input type="button" value="Save" class="btn btn-block btn-outline-light" v-on:click="onClickSendFilm">
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="./main.js"></script>
+  <script src="./contador.js"></script>
+</body>
+
+</html>
