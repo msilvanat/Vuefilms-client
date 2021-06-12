@@ -2,49 +2,74 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Movies App with vue" />
+  <meta name="keywords" content="HTML,CSS,JavaScript,Vue,Bootstrap" />
+  <meta name="author" content="María Silvana Tijera" />
   <title>Api Films</title>
-
 
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
     integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
-
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css">
-
   <link rel="stylesheet" href="style.css">
 
   <!-- Development version -->
   <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
 
 <body>
   <header>
-    <p>¡Welcome to Movies App!-------------////// Number of
-      visitors: <span id="cuentavisitas"></span></p>
+    <span>¡Welcome to Movies App!</span>
+    <span id="visitorcount"></span>
   </header>
 
   <div id="app">
     <div class="container">
       <h1>Movies App</h1>
       <br>
-      <div class="row">
-        <div class="col-8">
+
+      <div v-if="error" class="alert alert-danger alert-dismissible fade show" role="alert">
+        {{error}}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close" v-on:click="onClickAdd()">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <br>
+
+      <div v-if="showList===true" id="FilmListContainer" class="col">
+        <div class="row">
+          <button class="btn btn-lg btn-outline-danger" v-on:click="onClickAdd()">
+            <i class="fas fa-plus-circle"></i>
+            Add new film</button>
+        </div>
+
+        <br>
+
+        <div class="row">
           <div class="films">
             <div class="film" v-for="film in films" :key="film.id">
               <h3>{{ film.title }}</h3>
               <p>{{ film.description }}</p>
               <p>{{ film.director}}</p>
 
-              <button class="btn btn-block btn-outline-danger" v-on:click="onClickEditImg(film.image)">
+              <button type="button" class="btn btn-block btn-outline-light" data-toggle="modal"
+                data-target="#editImageModal" v-on:click="onClickEditImg(film.id,film.image)">
                 <i class="fas fa-edit"></i> Edit image </button>
 
               <br>
 
-              <img id="img" v-bind:src="film.image" alt="Girl in a jacket" width="250" height="auto">
+              <button type="button" class="btn btn-block btn-outline-danger"
+                v-on:click="onDeleteImg(film.id,film.image)">
+                <i class="fas fa-trash"></i> Delete image </button>
+
+              <br>
+
+              <div id="imageContainer">
+                <img id="filmImg" v-if="film.image" v-bind:src="film.image">
+              </div>
 
               <br>
 
@@ -52,64 +77,99 @@
                 <i class="fas fa-star yellow" v-for="point in film.score"></i>
                 <i class="fas fa-star" v-for="point in 5-film.score"></i>
               </p>
-              <button class="btn btn-block btn-danger" v-on:click="onClickDelete(film.id)">
-                <i class="fas fa-trash"></i>
-                Delete film</button>
+
+              <button class="btn btn-block btn-outline-light" v-on:click="onClickEDit(film)">
+                <i class="fas fa-edit"></i>
+                Edit film</button>
 
               <br>
 
-              <button class="btn btn-block btn-danger" v-on:click="onClickEDit(film)">
-                <i class="fas fa-edit"></i>
-                Edit film</button>
+              <button class="btn btn-block btn-outline-danger" v-on:click="onClickDelete(film.id)">
+                <i class="fas fa-trash"></i>
+                Delete film</button>
 
             </div>
           </div>
         </div>
-        <div class="col-4">
-          <div class="form-group">
-            <label>Title</label>
-            <input type="text" class="form-control" v-model="title">
+      </div>
+
+      <div v-if="showForm===true" id="FormContainer" class="col">
+        <div class="form-group">
+          <label>Title</label>
+          <input type="text" class="form-control" v-model="title">
+        </div>
+
+        <div class="form-group">
+          <label>Description</label>
+          <textarea class="form-control" v-model="description"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Director</label>
+          <input type="text" class="form-control" v-model="director">
+        </div>
+
+        <div class="form-group">
+          <label>Score</label>
+          <select class="form-control" v-model="score">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+          </select>
+        </div>
+
+        <div v-if="isEdit===false" class="form-group">
+          <label>Image</label>
+          <input type="file" class="form-control-file" @change="onChangeImage($event)" id="formFile">
+        </div>
+
+        <br>
+
+        <div class="buttons-options">
+          <input id="buttons-confirm" type="button" value="Save" class="btn  btn-outline-success" v-on:click="onClickSendFilm">
+          <input id="buttons-confirm" type="button" value="Cancel" class="btn  btn-outline-light" v-on:click="onReset">
+        </div>
+       
+      </div>
+
+      <div class="modal fade" id="editImageModal" tabindex="-1" aria-labelledby="editImageModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="editImageModalLabel">Edit Image</h5>
+              <button id="closeModal" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <div class="form-group">
+                <label>Image</label>
+                <input type="file" class="form-control-file" @change="onChangeImage($event)" id="formFile">
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              <button type="button" class="btn btn-success" v-on:click="onSaveEditImg()">Save
+                changes</button>
+            </div>
           </div>
-
-          <div class="form-group">
-            <label>Description</label>
-            <textarea class="form-control" v-model="description"></textarea>
-          </div>
-
-          <div class="form-group">
-            <label>Director</label>
-            <input type="text" class="form-control" v-model="director">
-          </div>
-
-          <div class="form-group">
-            <label>Score</label>
-            <select class="form-control" v-model="score">
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-              <option value="5">5</option>
-            </select>
-          </div>
-
-
-          <div v-if="isEdit===false" class="form-group">
-            <label>Image</label>
-            <input type="file" class="form-control-file" @change="onChangeImage($event)" id="formFile">
-          </div>
-
-          <br>
-
-          <input type="button" value="Save" class="btn btn-block btn-outline-light" v-on:click="onClickSendFilm">
-
         </div>
       </div>
     </div>
-
   </div>
 
-  <script src="./main.js"></script>
-  <script src="./contador.js"></script>
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+    integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
+    crossorigin="anonymous"></script>
+
+  <script src="./js/main.js"></script>
+  <script src="./js/counter.js"></script>
 </body>
 
 </html>
